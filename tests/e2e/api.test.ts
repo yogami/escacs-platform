@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'http://localhost:3042';
+const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3042';
 
 test.describe('ESCACS API E2E', () => {
     test('Health check returns 200', async ({ request }) => {
