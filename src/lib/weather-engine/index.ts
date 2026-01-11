@@ -57,6 +57,7 @@ export type {
 
 // Infrastructure - Adapters
 export { MockNoaaAdapter } from './infrastructure/MockNoaaAdapter';
+export { NoaaApiAdapter } from './infrastructure/NoaaApiAdapter';
 
 // ============================================================================
 // Factory Functions
@@ -64,11 +65,17 @@ export { MockNoaaAdapter } from './infrastructure/MockNoaaAdapter';
 
 import { WeatherTriggerService } from './domain/services/WeatherTriggerService';
 import { MockNoaaAdapter } from './infrastructure/MockNoaaAdapter';
+import { NoaaApiAdapter } from './infrastructure/NoaaApiAdapter';
+import process from 'node:process';
 
 /**
- * Create a weather trigger service with mock adapter
+ * Create a weather trigger service
  */
 export function createWeatherTriggerService(): WeatherTriggerService {
-    const adapter = new MockNoaaAdapter();
+    const isProd = process.env.NODE_ENV === 'production' || process.env.SERVICE_DISCOVERY_MODE === 'production';
+    const adapter = isProd
+        ? new NoaaApiAdapter(process.env.NOAA_EMAIL || 'escacs@berlinailabs.de')
+        : new MockNoaaAdapter();
+
     return new WeatherTriggerService(adapter);
 }
