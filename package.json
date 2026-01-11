@@ -18,7 +18,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:mobile": "playwright test --project=mobile",
-    "test:acceptance": "cucumber-js tests/acceptance/*.feature --require 'tests/step-definitions/**/*.ts' --require-module ts-node/register"
+    "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js tests/acceptance/*.feature --import 'tests/step-definitions/**/*.ts'"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.8",

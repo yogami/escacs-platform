@@ -16,7 +16,7 @@ Feature: Violation Risk Scoring
     And weather forecast shows 1.2 inches rain in 24 hours
     When I calculate the risk score
     Then the score should be greater than 75
-    And the risk level should be "high"
+    And the risk level should be "critical"
     And the top preventive action should be "Deploy additional inlet protection"
 
   Scenario: Moderate risk from weather alone

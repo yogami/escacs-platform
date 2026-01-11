@@ -69,7 +69,7 @@ export class RiskScore {
      * Determine risk level from score
      */
     static determineLevel(score: number): RiskLevel {
-        if (score >= 80) return 'critical';
+        if (score >= 90) return 'critical';
         if (score >= 60) return 'high';
         if (score >= 30) return 'moderate';
         return 'low';

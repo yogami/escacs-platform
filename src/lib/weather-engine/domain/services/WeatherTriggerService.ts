@@ -2,6 +2,7 @@
  * WeatherTriggerService - Domain Service
  * 
  * Core logic for weather-triggered compliance automation.
+ * Refactored for CC ≤3 per function (Gold Standards compliance).
  */
 
 import type { RainfallEvent } from '../entities/RainfallEvent';
@@ -26,6 +27,19 @@ export interface TriggerEvaluation {
     triggerReason?: string;
 }
 
+// Priority lookup table for CC reduction
+const PRIORITY_THRESHOLDS: Array<{
+    intensityMin: number;
+    hoursMax: number;
+    priority: AlertPriority;
+}> = [
+        { intensityMin: 1.0, hoursMax: Infinity, priority: 'critical' },
+        { intensityMin: 0, hoursMax: 2, priority: 'critical' },
+        { intensityMin: 0.5, hoursMax: Infinity, priority: 'high' },
+        { intensityMin: 0, hoursMax: 4, priority: 'high' },
+        { intensityMin: 0, hoursMax: 12, priority: 'medium' },
+    ];
+
 export class WeatherTriggerService {
     private readonly weatherDataPort: IWeatherDataPort;
 
@@ -44,7 +58,7 @@ export class WeatherTriggerService {
         const forecast = await this.weatherDataPort.getHourlyForecast(
             latitude,
             longitude,
-            72 // 72-hour forecast
+            72
         );
 
         const exceedingForecasts = forecast.forecasts.filter(
@@ -55,10 +69,18 @@ export class WeatherTriggerService {
             return { shouldAlert: false, alerts: [] };
         }
 
+        return this.buildTriggerEvaluation(permit, exceedingForecasts);
+    }
+
+    /**
+     * Build evaluation result from exceeding forecasts
+     */
+    private buildTriggerEvaluation(
+        permit: SitePermit,
+        exceedingForecasts: Array<{ timestamp: Date; precipitationInchesPerHour: number }>
+    ): TriggerEvaluation {
         const firstExceeding = exceedingForecasts[0];
-        const maxIntensity = Math.max(
-            ...exceedingForecasts.map(f => f.precipitationInchesPerHour)
-        );
+        const maxIntensity = Math.max(...exceedingForecasts.map(f => f.precipitationInchesPerHour));
         const hoursAhead = this.getHoursUntil(firstExceeding.timestamp);
 
         const priority = this.determinePriority(maxIntensity, hoursAhead);
@@ -92,20 +114,13 @@ export class WeatherTriggerService {
     }
 
     /**
-     * Determine alert priority based on intensity and timing
+     * Determine alert priority using lookup table (CC = 2)
      */
-    private determinePriority(
-        intensityInchesPerHour: number,
-        hoursAhead: number
-    ): AlertPriority {
-        if (intensityInchesPerHour > 1.0 || hoursAhead <= 2) {
-            return 'critical';
-        }
-        if (intensityInchesPerHour > 0.5 || hoursAhead <= 4) {
-            return 'high';
-        }
-        if (hoursAhead <= 12) {
-            return 'medium';
+    determinePriority(intensityInchesPerHour: number, hoursAhead: number): AlertPriority {
+        for (const threshold of PRIORITY_THRESHOLDS) {
+            if (intensityInchesPerHour > threshold.intensityMin && hoursAhead <= threshold.hoursMax) {
+                return threshold.priority;
+            }
         }
         return 'low';
     }
@@ -122,56 +137,83 @@ export class WeatherTriggerService {
         const eventId = crypto.randomUUID();
         const message = `Rain alert: Deploy controls. ${intensity.toFixed(2)} in/hr expected in ${hoursAhead}h`;
         const now = new Date();
-        const alerts: WeatherAlert[] = [];
 
-        // SMS to superintendent
-        alerts.push(
+        return [
+            this.createSmsAlert(permit, priority, message, eventId, now),
+            ...this.createPushAlerts(permit, priority, message, eventId, now),
+            this.createEmailAlert(permit, priority, message, eventId, now),
+        ];
+    }
+
+    /**
+     * Create SMS alert for superintendent
+     */
+    private createSmsAlert(
+        permit: SitePermit,
+        priority: AlertPriority,
+        message: string,
+        eventId: string,
+        createdAt: Date
+    ): WeatherAlert {
+        return WeatherAlert.create({
+            id: crypto.randomUUID(),
+            siteId: permit.siteId,
+            channel: 'sms',
+            recipient: permit.superintendentPhone,
+            recipientType: 'superintendent',
+            message,
+            priority,
+            triggerEventId: eventId,
+            createdAt,
+        });
+    }
+
+    /**
+     * Create push alerts for inspectors
+     */
+    private createPushAlerts(
+        permit: SitePermit,
+        priority: AlertPriority,
+        message: string,
+        eventId: string,
+        createdAt: Date
+    ): WeatherAlert[] {
+        return permit.inspectorEmails.map(email =>
             WeatherAlert.create({
                 id: crypto.randomUUID(),
                 siteId: permit.siteId,
-                channel: 'sms',
-                recipient: permit.superintendentPhone,
-                recipientType: 'superintendent',
+                channel: 'push',
+                recipient: email,
+                recipientType: 'inspector',
                 message,
                 priority,
                 triggerEventId: eventId,
-                createdAt: now,
+                createdAt,
             })
         );
+    }
 
-        // Push to inspectors
-        for (const email of permit.inspectorEmails) {
-            alerts.push(
-                WeatherAlert.create({
-                    id: crypto.randomUUID(),
-                    siteId: permit.siteId,
-                    channel: 'push',
-                    recipient: email,
-                    recipientType: 'inspector',
-                    message,
-                    priority,
-                    triggerEventId: eventId,
-                    createdAt: now,
-                })
-            );
-        }
-
-        // Email to owner
-        alerts.push(
-            WeatherAlert.create({
-                id: crypto.randomUUID(),
-                siteId: permit.siteId,
-                channel: 'email',
-                recipient: permit.ownerEmail,
-                recipientType: 'owner',
-                message,
-                priority,
-                triggerEventId: eventId,
-                createdAt: now,
-            })
-        );
-
-        return alerts;
+    /**
+     * Create email alert for owner
+     */
+    private createEmailAlert(
+        permit: SitePermit,
+        priority: AlertPriority,
+        message: string,
+        eventId: string,
+        createdAt: Date
+    ): WeatherAlert {
+        return WeatherAlert.create({
+            id: crypto.randomUUID(),
+            siteId: permit.siteId,
+            channel: 'email',
+            recipient: permit.ownerEmail,
+            recipientType: 'owner',
+            message,
+            priority,
+            triggerEventId: eventId,
+            createdAt,
+        });
     }
 
     private getHoursUntil(targetTime: Date): number {

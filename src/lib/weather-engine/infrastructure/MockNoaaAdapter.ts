@@ -67,11 +67,11 @@ export class MockNoaaAdapter implements IWeatherDataPort {
             case 'clear':
                 return 0;
             case 'light_rain':
-                return hoursFromNow >= 4 && hoursFromNow <= 8 ? 0.3 : 0;
+                return hoursFromNow >= 3 && hoursFromNow <= 8 ? 0.3 : 0;
             case 'heavy_rain':
-                return hoursFromNow >= 2 && hoursFromNow <= 6 ? 0.7 : 0;
+                return hoursFromNow >= 3 && hoursFromNow <= 6 ? 0.7 : 0;
             case 'storm':
-                return hoursFromNow >= 1 && hoursFromNow <= 4 ? 1.2 : 0;
+                return hoursFromNow >= 3 && hoursFromNow <= 4 ? 1.2 : 0;
         }
     }
 }

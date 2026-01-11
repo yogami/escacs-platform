@@ -45,7 +45,7 @@ app.doc('/api/openapi.json', {
 app.get('/api/docs', swaggerUI({ url: '/api/openapi.json' }));
 
 // Start server
-const port = parseInt(process.env.PORT || '3001', 10);
+const port = parseInt(process.env.PORT || '3042', 10);
 
 // Static files (frontend)
 app.use('/*', serveStatic({ root: './dist' }));
