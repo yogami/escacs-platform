@@ -4,7 +4,7 @@
  * Mock implementation of NOAA weather data for development/testing.
  */
 
-import { IWeatherDataPort, HourlyForecast, WeatherForecast } from '../ports/IWeatherDataPort';
+import type { IWeatherDataPort, HourlyForecast, WeatherForecast } from '../ports/IWeatherDataPort';
 
 export class MockNoaaAdapter implements IWeatherDataPort {
     private mockScenario: 'clear' | 'light_rain' | 'heavy_rain' | 'storm' = 'clear';

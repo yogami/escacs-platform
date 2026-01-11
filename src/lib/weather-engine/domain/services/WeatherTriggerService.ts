@@ -4,10 +4,11 @@
  * Core logic for weather-triggered compliance automation.
  */
 
-import { RainfallEvent } from '../entities/RainfallEvent';
-import { WeatherAlert, AlertPriority } from '../entities/WeatherAlert';
+import type { RainfallEvent } from '../entities/RainfallEvent';
+import { WeatherAlert } from '../entities/WeatherAlert';
+import type { AlertPriority } from '../entities/WeatherAlert';
 import { InspectionWindow } from '../entities/InspectionWindow';
-import { IWeatherDataPort, HourlyForecast } from '../../ports/IWeatherDataPort';
+import type { IWeatherDataPort } from '../../ports/IWeatherDataPort';
 
 export interface SitePermit {
     siteId: string;
@@ -26,7 +27,11 @@ export interface TriggerEvaluation {
 }
 
 export class WeatherTriggerService {
-    constructor(private readonly weatherDataPort: IWeatherDataPort) { }
+    private readonly weatherDataPort: IWeatherDataPort;
+
+    constructor(weatherDataPort: IWeatherDataPort) {
+        this.weatherDataPort = weatherDataPort;
+    }
 
     /**
      * Evaluate weather conditions against site permit thresholds

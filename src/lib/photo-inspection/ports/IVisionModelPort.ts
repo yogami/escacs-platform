@@ -4,7 +4,7 @@
  * Interface for computer vision model inference.
  */
 
-import { DefectClass, DefectSeverity, BoundingBox } from '../domain/entities/BMPDefect';
+import type { DefectClass, DefectSeverity, BoundingBox } from '../domain/entities/BMPDefect';
 
 export interface DetectionResult {
     defectClass: DefectClass;

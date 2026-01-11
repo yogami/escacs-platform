@@ -4,7 +4,7 @@
  * Interface for alert delivery channels (SMS, push, email).
  */
 
-import { WeatherAlert, AlertChannel } from '../domain/entities/WeatherAlert';
+import type { WeatherAlert, AlertChannel } from '../domain/entities/WeatherAlert';
 
 export interface AlertDeliveryResult {
     alertId: string;

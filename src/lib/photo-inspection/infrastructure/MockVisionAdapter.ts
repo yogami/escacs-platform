@@ -4,8 +4,8 @@
  * Mock implementation of vision model for development/testing.
  */
 
-import { DefectClass } from '../domain/entities/BMPDefect';
-import { IVisionModelPort, AnalysisOutput, DetectionResult } from '../ports/IVisionModelPort';
+import type { DefectClass } from '../domain/entities/BMPDefect';
+import type { IVisionModelPort, AnalysisOutput, DetectionResult } from '../ports/IVisionModelPort';
 
 export type MockPhotoType =
     | 'silt_fence_tear'

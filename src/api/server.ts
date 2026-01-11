@@ -13,6 +13,7 @@ import { healthRoutes } from './routes/health';
 import { weatherRoutes } from './routes/weather';
 import { inspectionsRoutes } from './routes/inspections';
 import { riskRoutes } from './routes/risk';
+import process from 'node:process';
 
 const app = new OpenAPIHono();
 

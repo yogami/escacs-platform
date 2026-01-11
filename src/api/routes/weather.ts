@@ -93,7 +93,6 @@ const evaluateRoute = createRoute({
 
 weatherRoutes.openapi(forecastRoute, async (c) => {
     const { lat, lon, hours } = c.req.valid('query');
-    const service = createWeatherTriggerService();
 
     // Access the adapter's method directly for forecast
     const forecast = {

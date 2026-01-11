@@ -4,9 +4,10 @@
  * Orchestrates photo analysis with confidence scoring.
  */
 
-import { BMPDefect, DefectClass, DefectSeverity } from '../entities/BMPDefect';
-import { InspectionPhoto } from '../entities/InspectionPhoto';
-import { IVisionModelPort, AnalysisOutput } from '../../ports/IVisionModelPort';
+import { BMPDefect } from '../entities/BMPDefect';
+import type { DefectClass, DefectSeverity } from '../entities/BMPDefect';
+import type { InspectionPhoto } from '../entities/InspectionPhoto';
+import type { IVisionModelPort, AnalysisOutput } from '../../ports/IVisionModelPort';
 
 export interface AnalysisResult {
     photo: InspectionPhoto;
@@ -28,10 +29,16 @@ const DEFAULT_CONFIG: AnalysisConfig = {
 };
 
 export class DefectDetectionService {
+    private readonly visionModel: IVisionModelPort;
+    private readonly config: AnalysisConfig;
+
     constructor(
-        private readonly visionModel: IVisionModelPort,
-        private readonly config: AnalysisConfig = DEFAULT_CONFIG
-    ) { }
+        visionModel: IVisionModelPort,
+        config: AnalysisConfig = DEFAULT_CONFIG
+    ) {
+        this.visionModel = visionModel;
+        this.config = config;
+    }
 
     /**
      * Analyze a photo for BMP defects

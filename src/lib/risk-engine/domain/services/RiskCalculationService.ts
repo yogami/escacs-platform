@@ -4,7 +4,8 @@
  * Calculates violation risk scores from multiple factors.
  */
 
-import { RiskScore, PreventiveAction, RiskFactor } from '../entities/RiskScore';
+import { RiskScore } from '../entities/RiskScore';
+import type { PreventiveAction, RiskFactor } from '../entities/RiskScore';
 import { SiteCondition } from '../entities/SiteCondition';
 
 export interface WeatherInput {

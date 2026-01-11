@@ -37,6 +37,7 @@ export type { InspectionWindowProps } from './domain/entities/InspectionWindow';
 
 // Domain Layer - Services
 export { WeatherTriggerService } from './domain/services/WeatherTriggerService';
+export { AlertScheduler } from './domain/services/AlertScheduler';
 export type {
     SitePermit,
     TriggerEvaluation
