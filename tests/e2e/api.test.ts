@@ -92,4 +92,32 @@ test.describe('ESCACS API E2E', () => {
         expect(body.defects).toBeInstanceOf(Array);
         expect(body.processingTimeMs).toBeGreaterThan(0);
     });
+
+    test('Report generation', async ({ request }) => {
+        const response = await request.post(`${BASE_URL}/api/reports/generate`, {
+            data: {
+                siteId: 'site-123',
+                siteName: 'Production Verification Site',
+                inspectorName: 'E2E Runner',
+                inspectionDate: new Date().toISOString().split('T')[0],
+                weatherConditions: 'Verified by automation',
+                overallCompliance: true,
+                riskScore: 30,
+                format: 'pdf',
+                findings: [
+                    {
+                        bmpType: 'Silt Fence',
+                        condition: 'good',
+                        defects: []
+                    }
+                ]
+            }
+        });
+        expect(response.ok()).toBeTruthy();
+        const body = await response.json();
+        expect(body.id).toBeDefined();
+        expect(body.filename).toContain('.pdf');
+        expect(body.contentBase64).toBeDefined();
+        expect(body.sizeBytes).toBeGreaterThan(0);
+    });
 });
