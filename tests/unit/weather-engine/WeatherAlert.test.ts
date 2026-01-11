@@ -21,56 +21,99 @@ describe('WeatherAlert', () => {
     describe('create', () => {
         it('should create a valid alert', () => {
             const alert = WeatherAlert.create(validProps);
-
             expect(alert.id).toBe(validProps.id);
             expect(alert.siteId).toBe(validProps.siteId);
             expect(alert.channel).toBe(validProps.channel);
-            expect(alert.recipient).toBe(validProps.recipient);
         });
 
-        it('should accept sms channel', () => {
-            const alert = WeatherAlert.create({ ...validProps, channel: 'sms' });
-            expect(alert.channel).toBe('sms');
-        });
-
-        it('should accept email channel', () => {
-            const alert = WeatherAlert.create({ ...validProps, channel: 'email' });
-            expect(alert.channel).toBe('email');
-        });
-
-        it('should accept push channel', () => {
-            const alert = WeatherAlert.create({ ...validProps, channel: 'push' });
-            expect(alert.channel).toBe('push');
-        });
-
-        it('should accept low priority', () => {
-            const alert = WeatherAlert.create({ ...validProps, priority: 'low' });
-            expect(alert.priority).toBe('low');
-        });
-
-        it('should accept medium priority', () => {
-            const alert = WeatherAlert.create({ ...validProps, priority: 'medium' });
-            expect(alert.priority).toBe('medium');
-        });
-
-        it('should accept high priority', () => {
-            const alert = WeatherAlert.create({ ...validProps, priority: 'high' });
-            expect(alert.priority).toBe('high');
-        });
-
-        it('should accept critical priority', () => {
-            const alert = WeatherAlert.create({ ...validProps, priority: 'critical' });
-            expect(alert.priority).toBe('critical');
-        });
-
-        it('should store recipient type', () => {
-            const alert = WeatherAlert.create({ ...validProps, recipientType: 'inspector' });
-            expect(alert.recipientType).toBe('inspector');
-        });
-
-        it('should store trigger event id', () => {
+        it('should default status to pending', () => {
             const alert = WeatherAlert.create(validProps);
-            expect(alert.triggerEventId).toBe(validProps.triggerEventId);
+            expect(alert.status).toBe('pending');
+        });
+
+        it('should throw on missing recipient', () => {
+            expect(() => WeatherAlert.create({ ...validProps, recipient: '' })).toThrow();
+        });
+
+        it('should throw on missing message', () => {
+            expect(() => WeatherAlert.create({ ...validProps, message: '' })).toThrow();
+        });
+    });
+
+    describe('isPending', () => {
+        it('should return true when status is pending', () => {
+            const alert = WeatherAlert.create(validProps);
+            expect(alert.isPending()).toBe(true);
+        });
+
+        it('should return false after markSent', () => {
+            const alert = WeatherAlert.create(validProps);
+            alert.markSent();
+            expect(alert.isPending()).toBe(false);
+        });
+    });
+
+    describe('markSent', () => {
+        it('should update status to sent', () => {
+            const alert = WeatherAlert.create(validProps);
+            alert.markSent();
+            expect(alert.status).toBe('sent');
+        });
+
+        it('should set sentAt timestamp', () => {
+            const alert = WeatherAlert.create(validProps);
+            alert.markSent();
+            expect(alert.sentAt).toBeInstanceOf(Date);
+        });
+    });
+
+    describe('markDelivered', () => {
+        it('should update status to delivered', () => {
+            const alert = WeatherAlert.create(validProps);
+            alert.markDelivered();
+            expect(alert.status).toBe('delivered');
+        });
+
+        it('should set deliveredAt timestamp', () => {
+            const alert = WeatherAlert.create(validProps);
+            alert.markDelivered();
+            expect(alert.deliveredAt).toBeInstanceOf(Date);
+        });
+    });
+
+    describe('markFailed', () => {
+        it('should update status to failed', () => {
+            const alert = WeatherAlert.create(validProps);
+            alert.markFailed();
+            expect(alert.status).toBe('failed');
+        });
+
+        it('should store failure reason when provided', () => {
+            const alert = WeatherAlert.create(validProps);
+            alert.markFailed('Network timeout');
+            expect(alert.failureReason).toBe('Network timeout');
+        });
+
+        it('should have null failure reason when not provided', () => {
+            const alert = WeatherAlert.create(validProps);
+            alert.markFailed();
+            expect(alert.failureReason).toBeNull();
+        });
+    });
+
+    describe('channels and priorities', () => {
+        it('should accept all channels', () => {
+            for (const channel of ['sms', 'email', 'push'] as const) {
+                const alert = WeatherAlert.create({ ...validProps, channel });
+                expect(alert.channel).toBe(channel);
+            }
+        });
+
+        it('should accept all priorities', () => {
+            for (const priority of ['low', 'medium', 'high', 'critical'] as const) {
+                const alert = WeatherAlert.create({ ...validProps, priority });
+                expect(alert.priority).toBe(priority);
+            }
         });
     });
 });

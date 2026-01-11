@@ -89,10 +89,34 @@ export class InspectionPhoto {
     }
 
     /**
+     * Check if photo has GPS coordinates
+     */
+    hasGpsCoordinates(): boolean {
+        return this.gpsCoordinates !== null;
+    }
+
+    /**
      * Check if GPS coordinates meet accuracy requirement
      */
+    isGpsAccurate(maxMeters: number = 5): boolean {
+        return this.hasGpsCoordinates() &&
+            this.gpsCoordinates!.accuracy <= maxMeters;
+    }
+
+    /**
+     * Alias for isGpsAccurate for backwards compatibility
+     */
     hasAccurateGPS(maxMeters: number = 5): boolean {
-        return this.gpsCoordinates !== null &&
-            this.gpsCoordinates.accuracy <= maxMeters;
+        return this.isGpsAccurate(maxMeters);
+    }
+
+    /**
+     * Update analysis status directly
+     */
+    updateAnalysisStatus(status: InspectionPhotoProps['analysisStatus']): void {
+        this._analysisStatus = status;
+        if (status === 'completed') {
+            this._analyzedAt = new Date();
+        }
     }
 }

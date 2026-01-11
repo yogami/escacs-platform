@@ -55,20 +55,40 @@ export class InspectionWindow {
     }
 
     /**
+     * Get deadline time (alias for deadlineTime)
+     */
+    get deadline(): Date {
+        return this.deadlineTime;
+    }
+
+    /**
      * Check if deadline has passed
      */
+    isExpired(): boolean {
+        return new Date() > this.deadlineTime;
+    }
+
+    /**
+     * Check if deadline has passed without completion
+     */
     isOverdue(): boolean {
-        return new Date() > this.deadlineTime && !this._inspectionCompletedAt;
+        return this.isExpired() && !this._inspectionCompletedAt;
     }
 
     /**
      * Get hours remaining until deadline
      */
-    getHoursRemaining(): number {
-        if (this._inspectionCompletedAt) return 0;
+    getRemainingHours(): number {
         const now = new Date();
         const diff = this.deadlineTime.getTime() - now.getTime();
         return Math.max(0, diff / (1000 * 60 * 60));
+    }
+
+    /**
+     * Alias for getRemainingHours
+     */
+    getHoursRemaining(): number {
+        return this.getRemainingHours();
     }
 
     /**

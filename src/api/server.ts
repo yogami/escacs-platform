@@ -16,6 +16,7 @@ import { healthRoutes } from './routes/health';
 import { weatherRoutes } from './routes/weather';
 import { inspectionsRoutes } from './routes/inspections';
 import { riskRoutes } from './routes/risk';
+import { reportsRoutes } from './routes/reports';
 import process from 'node:process';
 
 const app = new OpenAPIHono();
@@ -28,6 +29,7 @@ app.route('/api', healthRoutes);
 app.route('/api', weatherRoutes);
 app.route('/api', inspectionsRoutes);
 app.route('/api', riskRoutes);
+app.route('/api/reports', reportsRoutes);
 
 // OpenAPI documentation
 app.doc('/api/openapi.json', {

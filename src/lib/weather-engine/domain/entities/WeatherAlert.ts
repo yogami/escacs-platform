@@ -36,6 +36,7 @@ export class WeatherAlert {
     private _status: AlertStatus;
     private _sentAt: Date | null;
     private _deliveredAt: Date | null;
+    private _failureReason: string | null;
 
     private constructor(props: WeatherAlertProps) {
         this.id = props.id;
@@ -50,6 +51,7 @@ export class WeatherAlert {
         this._status = props.status ?? 'pending';
         this._sentAt = props.sentAt ?? null;
         this._deliveredAt = props.deliveredAt ?? null;
+        this._failureReason = null;
     }
 
     static create(props: WeatherAlertProps): WeatherAlert {
@@ -91,10 +93,15 @@ export class WeatherAlert {
     }
 
     /**
-     * Mark alert as failed
+     * Mark alert as failed with optional reason
      */
-    markFailed(): void {
+    markFailed(reason?: string): void {
         this._status = 'failed';
+        this._failureReason = reason ?? null;
+    }
+
+    get failureReason(): string | null {
+        return this._failureReason;
     }
 
     /**

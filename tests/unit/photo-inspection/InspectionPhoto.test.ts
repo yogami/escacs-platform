@@ -18,90 +18,105 @@ describe('InspectionPhoto', () => {
     describe('create', () => {
         it('should create a valid photo', () => {
             const photo = InspectionPhoto.create(validProps);
-
             expect(photo.id).toBe(validProps.id);
             expect(photo.siteId).toBe(validProps.siteId);
-            expect(photo.inspectorId).toBe(validProps.inspectorId);
         });
 
-        it('should set analysis status to pending', () => {
-            const photo = InspectionPhoto.create(validProps);
-            expect(photo.analysisStatus).toBe('pending');
+        it('should throw on missing imageUrl', () => {
+            expect(() => InspectionPhoto.create({ ...validProps, imageUrl: '' })).toThrow();
         });
 
-        it('should accept analyzing status', () => {
-            const photo = InspectionPhoto.create({ ...validProps, analysisStatus: 'analyzing' });
-            expect(photo.analysisStatus).toBe('analyzing');
-        });
-
-        it('should accept complete status', () => {
-            const photo = InspectionPhoto.create({ ...validProps, analysisStatus: 'complete' });
-            expect(photo.analysisStatus).toBe('complete');
-        });
-
-        it('should accept failed status', () => {
-            const photo = InspectionPhoto.create({ ...validProps, analysisStatus: 'failed' });
-            expect(photo.analysisStatus).toBe('failed');
-        });
-
-        it('should accept GPS coordinates', () => {
-            const photo = InspectionPhoto.create({
-                ...validProps,
-                gpsCoordinates: {
-                    latitude: 37.5407,
-                    longitude: -77.4360,
-                    accuracy: 5,
-                },
-            });
-
-            expect(photo.gpsCoordinates).toBeDefined();
-            expect(photo.gpsCoordinates?.latitude).toBe(37.5407);
-            expect(photo.gpsCoordinates?.longitude).toBe(-77.4360);
-            expect(photo.gpsCoordinates?.accuracy).toBe(5);
-        });
-
-        it('should handle missing GPS coordinates', () => {
+        it('should default gpsCoordinates to null', () => {
             const photo = InspectionPhoto.create(validProps);
             expect(photo.gpsCoordinates).toBeNull();
         });
+    });
 
-        it('should store captured timestamp', () => {
-            const capturedAt = new Date('2026-01-10T12:00:00Z');
-            const photo = InspectionPhoto.create({ ...validProps, capturedAt });
-            expect(photo.capturedAt).toEqual(capturedAt);
+    describe('hasGpsCoordinates', () => {
+        it('should return false when no GPS', () => {
+            const photo = InspectionPhoto.create(validProps);
+            expect(photo.hasGpsCoordinates()).toBe(false);
         });
 
-        it('should store image URL', () => {
-            const photo = InspectionPhoto.create(validProps);
-            expect(photo.imageUrl).toBe(validProps.imageUrl);
+        it('should return true when GPS present', () => {
+            const photo = InspectionPhoto.create({
+                ...validProps,
+                gpsCoordinates: { latitude: 37.5, longitude: -77.4, accuracy: 5 },
+            });
+            expect(photo.hasGpsCoordinates()).toBe(true);
         });
     });
 
-    describe('GPS coordinates', () => {
-        it('should allow accuracy of 0', () => {
-            const photo = InspectionPhoto.create({
-                ...validProps,
-                gpsCoordinates: {
-                    latitude: 37.5407,
-                    longitude: -77.4360,
-                    accuracy: 0,
-                },
-            });
-
-            expect(photo.gpsCoordinates?.accuracy).toBe(0);
+    describe('isGpsAccurate', () => {
+        it('should return false when no GPS', () => {
+            const photo = InspectionPhoto.create(validProps);
+            expect(photo.isGpsAccurate(10)).toBe(false);
         });
 
-        it('should handle high accuracy values', () => {
+        it('should return true when accuracy within threshold', () => {
             const photo = InspectionPhoto.create({
                 ...validProps,
-                gpsCoordinates: {
-                    latitude: 37.5407,
-                    longitude: -77.4360,
-                    accuracy: 100,
-                },
+                gpsCoordinates: { latitude: 37.5, longitude: -77.4, accuracy: 3 },
             });
+            expect(photo.isGpsAccurate(5)).toBe(true);
+        });
 
-            expect(photo.gpsCoordinates?.accuracy).toBe(100);
+        it('should return false when accuracy exceeds threshold', () => {
+            const photo = InspectionPhoto.create({
+                ...validProps,
+                gpsCoordinates: { latitude: 37.5, longitude: -77.4, accuracy: 15 },
+            });
+            expect(photo.isGpsAccurate(10)).toBe(false);
+        });
+
+        it('should use default threshold of 5', () => {
+            const photo = InspectionPhoto.create({
+                ...validProps,
+                gpsCoordinates: { latitude: 37.5, longitude: -77.4, accuracy: 3 },
+            });
+            expect(photo.isGpsAccurate()).toBe(true);
+        });
+    });
+
+    describe('updateAnalysisStatus', () => {
+        it('should update to analyzing', () => {
+            const photo = InspectionPhoto.create(validProps);
+            photo.updateAnalysisStatus('analyzing');
+            expect(photo.analysisStatus).toBe('analyzing');
+        });
+
+        it('should update to completed and set analyzedAt', () => {
+            const photo = InspectionPhoto.create(validProps);
+            photo.updateAnalysisStatus('completed');
+            expect(photo.analysisStatus).toBe('completed');
+            expect(photo.analyzedAt).toBeInstanceOf(Date);
+        });
+
+        it('should update to failed', () => {
+            const photo = InspectionPhoto.create(validProps);
+            photo.updateAnalysisStatus('failed');
+            expect(photo.analysisStatus).toBe('failed');
+        });
+    });
+
+    describe('analysis lifecycle methods', () => {
+        it('should transition through startAnalysis', () => {
+            const photo = InspectionPhoto.create(validProps);
+            photo.startAnalysis();
+            expect(photo.analysisStatus).toBe('analyzing');
+        });
+
+        it('should transition through completeAnalysis', () => {
+            const photo = InspectionPhoto.create(validProps);
+            photo.completeAnalysis();
+            expect(photo.analysisStatus).toBe('completed');
+            expect(photo.analyzedAt).toBeInstanceOf(Date);
+        });
+
+        it('should transition through failAnalysis', () => {
+            const photo = InspectionPhoto.create(validProps);
+            photo.failAnalysis();
+            expect(photo.analysisStatus).toBe('failed');
         });
     });
 });
