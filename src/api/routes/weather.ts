@@ -3,7 +3,7 @@
  */
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { createWeatherTriggerService } from '@/lib/weather-engine';
+import { createWeatherTriggerService } from '../../lib/weather-engine';
 
 export const weatherRoutes = new OpenAPIHono();
 

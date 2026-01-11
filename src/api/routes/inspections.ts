@@ -3,7 +3,7 @@
  */
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { createDefectDetectionService, InspectionPhoto } from '@/lib/photo-inspection';
+import { createDefectDetectionService, InspectionPhoto } from '../../lib/photo-inspection';
 import { Buffer } from 'node:buffer';
 
 export const inspectionsRoutes = new OpenAPIHono();

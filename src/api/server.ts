@@ -5,9 +5,12 @@
  */
 
 import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { swaggerUI } from '@hono/swagger-ui';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { cors } from 'hono/cors';
+import path from 'node:path';
+import fs from 'node:fs';
 
 import { healthRoutes } from './routes/health';
 import { weatherRoutes } from './routes/weather';
@@ -43,6 +46,18 @@ app.get('/api/docs', swaggerUI({ url: '/api/openapi.json' }));
 
 // Start server
 const port = parseInt(process.env.PORT || '3001', 10);
+
+// Static files (frontend)
+app.use('/*', serveStatic({ root: './dist' }));
+
+// Fallback for SPA routing
+app.get('*', (c) => {
+    const indexPath = path.resolve('./dist/index.html');
+    if (fs.existsSync(indexPath)) {
+        return c.html(fs.readFileSync(indexPath, 'utf-8'));
+    }
+    return c.text('API is running. UI build not found.', 404);
+});
 
 console.log(`🚀 ESCACS API starting on port ${port}`);
 

@@ -3,7 +3,7 @@
  */
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { createRiskCalculationService, SiteCondition } from '@/lib/risk-engine';
+import { createRiskCalculationService, SiteCondition } from '../../lib/risk-engine';
 
 export const riskRoutes = new OpenAPIHono();
 
